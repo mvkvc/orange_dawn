@@ -82,8 +82,8 @@ Logout revokes the database session and clears both cookies. Socket connections
 use Phoenix session connect-info and require the `_csrf_token` connection parameter.
 
 Development uses Swoosh's local mailbox; tests use its test adapter. Production
-requires `FRONTEND_URL` (the public HTTPS client origin), `MAIL_FROM`, `SMTP_HOST`,
-`SMTP_USERNAME`, and `SMTP_PASSWORD`; `SMTP_PORT` defaults to 587. SMTP uses
+requires `BACKEND_FRONTEND_URL` (the public HTTPS client origin), `BACKEND_MAIL_FROM`, `BACKEND_SMTP_HOST`,
+`BACKEND_SMTP_USERNAME`, and `BACKEND_SMTP_PASSWORD`; `BACKEND_SMTP_PORT` defaults to 587. SMTP uses
 STARTTLS with certificate verification. Real SMTP delivery requires deployment
 credentials and has not been exercised locally.
 
