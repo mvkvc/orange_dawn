@@ -121,13 +121,19 @@ export function createAuth() {
         });
         csrfToken = session.csrf_token;
         setUser(session.user);
-        setNotification({ kind: "success", message: "You’re logged in." });
+        setNotification({
+          kind: "success",
+          message: "Successfully logged in.",
+        });
       }),
     logout: () =>
       run(async () => {
         await request<undefined>("DELETE", "session");
         clear();
-        setNotification({ kind: "success", message: "You’re logged out." });
+        setNotification({
+          kind: "success",
+          message: "Successfully logged out.",
+        });
       }),
   };
 }
