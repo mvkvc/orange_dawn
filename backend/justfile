@@ -1,0 +1,28 @@
+deps:
+    mix deps.get
+
+setup:
+    mix setup
+
+reset:
+    mix ecto.reset
+
+dev:
+    iex -S mix phx.server
+
+build:
+    mix compile --warnings-as-errors
+
+test:
+    just --justfile ../justfile db-start
+    mix test --warnings-as-errors
+
+lint:
+    mix format --check-formatted
+    MIX_ENV=test mix credo --strict
+    MIX_ENV=test mix sobelow --private --skip --exit low
+
+audit:
+    MIX_ENV=test mix hex.audit
+
+check: lint audit build test

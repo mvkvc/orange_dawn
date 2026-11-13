@@ -1,0 +1,67 @@
+name: Backend check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend_check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MIX_ENV: test
+    defaults:
+      run:
+        shell: bash
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: orange_dawn_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d orange_dawn_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "29.1.2"
+          elixir-version: "1.20.5"
+      - name: Install dependencies
+        run: |
+          mix local.hex --force
+          mix local.rebar --force
+          mix deps.get --check-locked
+      - name: Audit dependencies
+        run: mix hex.audit
+      - name: Check formatting
+        run: |
+          mix format --check-formatted
+      - name: Credo
+        run: |
+          mix credo --strict
+      - name: Sobelow
+        run: |
+          mix sobelow --private --skip --exit low
+      - name: Compile
+        run: |
+          mix compile --warnings-as-errors
+      - name: Test
+        run: |
+          mix test --warnings-as-errors

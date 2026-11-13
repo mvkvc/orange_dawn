@@ -1,0 +1,19 @@
+deps:
+    pnpm install --frozen-lockfile
+
+dev:
+    pnpm dev --open
+
+build:
+    pnpm build
+
+test:
+    pnpm test
+
+lint:
+    pnpm lint
+
+audit:
+    pnpm audit --audit-level low
+
+check: lint audit build test

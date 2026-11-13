@@ -1,0 +1,9 @@
+.direnv/
+.hex/
+.mix/
+node_modules/
+
+.secrets
+.act-event.json
+
+.overmind.sock
