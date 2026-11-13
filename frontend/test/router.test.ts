@@ -133,6 +133,9 @@ it("exchanges an emailed token and shows the signed-in home", async () => {
   expect(root.querySelector<HTMLElement>("#nav-login")?.hidden).toBe(true);
   expect(root.querySelector<HTMLElement>("#nav-register")?.hidden).toBe(true);
   expect(sessionStorage.getItem("orange-dawn-token")).toBeNull();
+  expect(root.querySelector('.toast [role="status"]')?.textContent).toContain(
+    "You’re logged in.",
+  );
   fetch.mockResolvedValueOnce(new Response(null, { status: 204 }));
   root.querySelector<HTMLButtonElement>("#logout")?.click();
   await vi.waitFor(() => {
@@ -141,6 +144,9 @@ it("exchanges an emailed token and shows the signed-in home", async () => {
   expect(root.querySelector<HTMLElement>("#nav-register")?.hidden).toBe(false);
   expect(root.querySelector<HTMLElement>("#nav-home")?.hidden).toBe(false);
   expect(root.querySelector<HTMLElement>("#logout")?.hidden).toBe(true);
+  expect(root.querySelector('.toast [role="status"]')?.textContent).toContain(
+    "You’re logged out.",
+  );
 });
 
 it("shows dismissible auth notifications outside the form", async () => {
