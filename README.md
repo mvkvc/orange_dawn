@@ -65,6 +65,8 @@ use the Pixi renderer. Router integration tests run in jsdom.
 
 Register with `POST /api/v1/users` or request a sign-in link with
 `POST /api/v1/session`, using `{"user":{"email":"player@example.com"}}`.
+Development setup seeds `test@test.com` so you can use Log in directly.
+To seed an existing database, run `mix run priv/repo/seeds.exs` from `backend/`.
 Open development emails at `http://localhost:4000/dev/mailbox`.
 Links expire after 15 minutes. The client exchanges the email token via
 `POST /api/v1/session` with `{"user":{"token":"..."}}` for `{user, csrf_token}`.
