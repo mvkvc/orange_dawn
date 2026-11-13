@@ -1,3 +1,4 @@
+import { mountAuth } from "./auth-view";
 import "./index.css";
 import { createSignal } from "solid-js";
 import {
@@ -48,3 +49,6 @@ if (!(canvas instanceof HTMLCanvasElement)) {
 }
 
 render(() => <Scene canvas={canvas} />);
+
+const disposeAuth = mountAuth();
+import.meta.hot?.dispose(disposeAuth);

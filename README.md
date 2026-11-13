@@ -52,6 +52,30 @@ Frontend builds write to `backend/priv/static`. Production configuration enables
 Phoenix's SPA fallback. `just build` uses the current Mix environment; it does
 not create or deploy a production release. GitHub Actions runs the same checks on pull requests and pushes to `main`.
 
+## Authentication
+
+Authentication uses Phoenix 1.8's generated email-link flow, adapted to JSON
+following [Phoenix's API guide](https://phoenix.hexdocs.pm/api_authentication.html).
+The DaisyUI site shell has a navbar, light/dark themes, and login and registration views.
+
+Register with `POST /api/v1/users` or request a sign-in link with
+`POST /api/v1/session`, using `{"user":{"email":"player@example.com"}}`.
+Open development emails at `http://localhost:4000/dev/mailbox`.
+Links expire after 15 minutes. The client exchanges the email token via
+`POST /api/v1/session` with `{"user":{"token":"..."}}` for `{user, token}`.
+The first login confirms the email and clears earlier tokens; links are single-use.
+
+API bearer tokens expire after seven days and are stored hashed in the database.
+The client retains its token in sessionStorage. `GET /api/v1/session` restores
+its user; `DELETE /api/v1/session` revokes it and disconnects the user's sockets.
+Socket connections require a `token` parameter. Public user data is `id` and `email`.
+
+Development uses Swoosh's local mailbox; tests use its test adapter. Production
+requires `FRONTEND_URL` (the public HTTPS client origin), `MAIL_FROM`, `SMTP_HOST`,
+`SMTP_USERNAME`, and `SMTP_PASSWORD`; `SMTP_PORT` defaults to 587. SMTP uses
+STARTTLS with certificate verification. Real SMTP delivery requires deployment
+credentials and has not been exercised locally.
+
 ## Repository and agent workflow
 
 - `frontend/`: client code and renderer configuration.

@@ -26,6 +26,25 @@ if config_env() != :test do
 end
 
 if config_env() == :prod do
+  relay = System.fetch_env!("SMTP_HOST")
+  config :orange_dawn, :frontend_url, System.fetch_env!("FRONTEND_URL")
+  config :orange_dawn, :mail_from, System.fetch_env!("MAIL_FROM")
+
+  config :orange_dawn, OrangeDawn.Mailer,
+    adapter: Swoosh.Adapters.SMTP,
+    relay: relay,
+    port: String.to_integer(System.get_env("SMTP_PORT", "587")),
+    username: System.fetch_env!("SMTP_USERNAME"),
+    password: System.fetch_env!("SMTP_PASSWORD"),
+    auth: :always,
+    tls: :always,
+    tls_options: [
+      verify: :verify_peer,
+      cacerts: :public_key.cacerts_get(),
+      server_name_indication: String.to_charlist(relay),
+      customize_hostname_check: [match_fun: :public_key.pkix_verify_hostname_match_fun(:https)]
+    ]
+
   database_url =
     System.get_env("BACKEND_DATABASE_URL") ||
       raise """

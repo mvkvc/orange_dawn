@@ -1,12 +1,114 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="autumn">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Orange Dawn</title>
   </head>
-  <body class="m-0 h-dvh overflow-hidden bg-neutral-950">
-    <canvas id="root" class="block h-full w-full"></canvas>
+  <body class="min-h-dvh bg-base-100 text-base-content">
+    <header class="border-b border-base-300">
+      <nav
+        class="navbar mx-auto max-w-6xl gap-4 px-6"
+        aria-label="Main navigation"
+      >
+        <a href="/" class="flex-1 text-xl font-bold tracking-tight"
+          >Orange Dawn</a
+        >
+        <details class="dropdown dropdown-end">
+          <summary class="btn btn-ghost btn-sm">
+            Theme <span aria-hidden="true">⌄</span>
+          </summary>
+          <ul
+            class="dropdown-content menu z-10 mt-2 w-52 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
+            aria-label="Choose theme"
+          >
+            <li>
+              <label class="flex gap-3"
+                ><input
+                  type="radio"
+                  name="theme"
+                  value="autumn"
+                  class="radio radio-sm theme-controller"
+                  checked /><span class="flex-1">Autumn</span
+                ><span
+                  data-theme="autumn"
+                  class="flex gap-1 rounded bg-base-100 p-1"
+                  aria-hidden="true"
+                  ><span class="h-3 w-3 rounded bg-primary"></span
+                  ><span class="h-3 w-3 rounded bg-secondary"></span
+                  ><span class="h-3 w-3 rounded bg-accent"></span></span
+              ></label>
+            </li>
+            <li>
+              <label class="flex gap-3"
+                ><input
+                  type="radio"
+                  name="theme"
+                  value="business"
+                  class="radio radio-sm theme-controller" /><span class="flex-1"
+                  >Business</span
+                ><span
+                  data-theme="business"
+                  class="flex gap-1 rounded bg-base-100 p-1"
+                  aria-hidden="true"
+                  ><span class="h-3 w-3 rounded bg-primary"></span
+                  ><span class="h-3 w-3 rounded bg-secondary"></span
+                  ><span class="h-3 w-3 rounded bg-accent"></span></span
+              ></label>
+            </li>
+          </ul>
+        </details>
+        <div id="account" class="flex items-center gap-3" hidden>
+          <span id="account-email" class="hidden text-sm sm:inline"></span>
+          <button id="logout" type="button" class="btn btn-ghost btn-sm">
+            Log out
+          </button>
+          <p
+            id="account-status"
+            role="status"
+            class="text-error empty:hidden"
+          ></p>
+        </div>
+      </nav>
+    </header>
+    <main
+      id="auth-panel"
+      class="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-6xl items-center justify-center px-6 py-12"
+    >
+      <section class="w-full max-w-sm" aria-labelledby="auth-heading">
+        <h1 id="auth-heading" class="text-3xl font-semibold">Log in</h1>
+        <p class="mt-3 text-base-content/70">
+          We'll email you a link to sign in.
+        </p>
+        <form id="auth-form" class="mt-8 space-y-4">
+          <label for="email" class="label">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            maxlength="160"
+            required
+            class="input w-full"
+          />
+          <p
+            id="auth-status"
+            role="status"
+            aria-live="polite"
+            class="min-h-6 text-sm"
+          ></p>
+          <button id="auth-submit" type="submit" class="btn btn-primary w-full">
+            Email sign-in link
+          </button>
+        </form>
+        <button id="auth-toggle" type="button" class="btn btn-link mt-4 px-0">
+          New here? Create an account
+        </button>
+      </section>
+    </main>
+    <section id="game" hidden>
+      <canvas id="root" class="block h-full w-full"></canvas>
+    </section>
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

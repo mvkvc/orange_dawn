@@ -7,6 +7,23 @@
 # General application configuration
 import Config
 
+config :swoosh, :api_client, false
+config :orange_dawn, :frontend_url, "http://localhost:5173"
+config :orange_dawn, OrangeDawn.Mailer, adapter: Swoosh.Adapters.Local
+
+config :orange_dawn, :scopes,
+  user: [
+    default: true,
+    module: OrangeDawn.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users,
+    test_data_fixture: OrangeDawn.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :orange_dawn,
   ecto_repos: [OrangeDawn.Repo],
   generators: [timestamp_type: :utc_datetime]
@@ -26,6 +43,8 @@ config :orange_dawn, OrangeDawnWeb.Endpoint,
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
+
+config :phoenix, :filter_parameters, ["password", "token"]
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason

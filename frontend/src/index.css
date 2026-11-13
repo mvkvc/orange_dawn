@@ -1,1 +1,6 @@
 @import "tailwindcss";
+@plugin "daisyui" {
+  themes:
+    autumn --default,
+    business --prefersdark;
+}

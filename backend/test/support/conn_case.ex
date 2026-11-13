@@ -15,6 +15,10 @@ defmodule OrangeDawnWeb.ConnCase do
   this option is not recommended for other databases.
   """
 
+  alias OrangeDawn.Accounts
+  alias OrangeDawn.Accounts.Scope
+  alias OrangeDawn.AccountsFixtures
+
   use ExUnit.CaseTemplate
 
   using do
@@ -34,5 +38,17 @@ defmodule OrangeDawnWeb.ConnCase do
   setup tags do
     OrangeDawn.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
+  end
+
+  @doc "Registers an account and authenticates API requests with a bearer token."
+  def register_and_log_in_user(%{conn: conn}) do
+    user = AccountsFixtures.user_fixture()
+    token = Accounts.create_user_api_token(user)
+
+    %{
+      conn: Plug.Conn.put_req_header(conn, "authorization", "Bearer #{token}"),
+      user: user,
+      scope: Scope.for_user(user)
+    }
   end
 end
