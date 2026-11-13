@@ -2,6 +2,13 @@ name: Frontend check
 
 on:
   pull_request:
+    paths:
+      - "frontend/**"
+      - "flake.nix"
+      - "flake.lock"
+      - "justfile"
+      - "compose.yaml"
+      - ".github/workflows/frontend_check.yml"
   push:
     branches: [main]
   workflow_dispatch:
