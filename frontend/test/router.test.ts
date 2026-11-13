@@ -133,3 +133,56 @@ it("exchanges an emailed token and shows the signed-in home", async () => {
   });
   expect(root.querySelector<HTMLElement>("#nav-register")?.hidden).toBe(false);
 });
+
+it("shows dismissible auth notifications outside the form", async () => {
+  history.replaceState(null, "", "/users/register");
+  const fetch = vi
+    .fn<typeof globalThis.fetch>()
+    .mockResolvedValueOnce(
+      new Response(JSON.stringify({ user: null, csrf_token: "csrf" })),
+    )
+    .mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ message: "Check your email for a sign-in link." }),
+      ),
+    )
+    .mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ errors: { email: ["has already been taken"] } }),
+        { status: 422 },
+      ),
+    );
+  vi.stubGlobal("fetch", fetch);
+  const root = document.createElement("div");
+  document.body.append(root);
+  dispose = mountApp(root);
+  flush();
+  await vi.waitFor(() => {
+    expect(
+      root.querySelector<HTMLButtonElement>("#auth-submit")?.disabled,
+    ).toBe(false);
+  });
+  const email = root.querySelector<HTMLInputElement>("#email");
+  if (!email) throw new Error("Missing email field");
+  email.value = "player@example.com";
+  const form = root.querySelector("form");
+  expect(form?.querySelector('[role="status"]')).toBeNull();
+  form?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  await vi.waitFor(() => {
+    expect(root.querySelector('.toast [role="status"]')?.textContent).toContain(
+      "Check your email",
+    );
+  });
+  root
+    .querySelector<HTMLButtonElement>('[aria-label="Dismiss notification"]')
+    ?.click();
+  await vi.waitFor(() => {
+    expect(root.querySelector(".toast")).toBeNull();
+  });
+  form?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+  await vi.waitFor(() => {
+    expect(root.querySelector('.toast [role="alert"]')?.textContent).toContain(
+      "has already been taken",
+    );
+  });
+});

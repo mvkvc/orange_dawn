@@ -1,5 +1,11 @@
 /** @jsxImportSource @solidjs/web */
-import { createEffect, onSettled, createContext, useContext } from "solid-js";
+import {
+  createEffect,
+  onSettled,
+  createContext,
+  useContext,
+  Show,
+} from "solid-js";
 import { render } from "@solidjs/web";
 import {
   createRouter,
@@ -66,15 +72,47 @@ function Layout(props: RouteSectionProps) {
             >
               Log out
             </button>
-            <p
-              id="account-status"
-              role="status"
-              class="text-error empty:hidden"
-            ></p>
           </div>
         </nav>
       </header>
       {props.children}
+      <Show when={auth.notification()}>
+        {(notice) => (
+          <div class="toast toast-end z-50 max-w-full p-4">
+            <div
+              class={[
+                "alert max-w-sm shadow-lg",
+                {
+                  "alert-success": notice().kind === "success",
+                  "alert-error": notice().kind === "error",
+                },
+              ]}
+              role={notice().kind === "error" ? "alert" : "status"}
+            >
+              <span>{notice().message}</span>
+              <button
+                type="button"
+                class="btn btn-ghost btn-square btn-sm"
+                aria-label="Dismiss notification"
+                ref={(button) => {
+                  button.addEventListener("click", auth.dismissNotification);
+                }}
+              >
+                <svg
+                  class="size-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path d="m6 6 12 12M6 18 18 6" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+      </Show>
     </AuthContext>
   );
 }
@@ -140,21 +178,13 @@ function AuthPage(props: { register?: boolean }) {
             required
             class="input w-full"
           />
-          <p
-            id="auth-status"
-            role="status"
-            aria-live="polite"
-            class="min-h-6 text-sm"
-          >
-            {auth.busy() ? "Please wait…" : auth.error()}
-          </p>
           <button
             id="auth-submit"
             disabled={auth.busy()}
             type="submit"
             class="btn btn-primary w-full"
           >
-            Email sign-in link
+            {auth.busy() ? "Please wait…" : "Email sign-in link"}
           </button>
         </form>
         <a

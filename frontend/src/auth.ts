@@ -22,7 +22,10 @@ export class AuthError extends Error {
 export function createAuth() {
   const [user, setUser] = createSignal<User | null>(null);
   const [busy, setBusy] = createSignal(false);
-  const [error, setError] = createSignal("");
+  const [notification, setNotification] = createSignal<{
+    kind: "success" | "error";
+    message: string;
+  } | null>(null);
   let csrfToken: string | undefined;
   let pending = false;
 
@@ -70,16 +73,18 @@ export function createAuth() {
     if (pending) return;
     pending = true;
     setBusy(true);
-    setError("");
+    setNotification(null);
     try {
       await operation();
     } catch (cause) {
       if (cause instanceof AuthError && cause.status === 401) clear();
-      setError(
-        cause instanceof AuthError
-          ? cause.message
-          : "Unable to reach the server. Please try again.",
-      );
+      setNotification({
+        kind: "error",
+        message:
+          cause instanceof AuthError
+            ? cause.message
+            : "Unable to reach the server. Please try again.",
+      });
     } finally {
       pending = false;
       setBusy(false);
@@ -89,7 +94,8 @@ export function createAuth() {
   return {
     user,
     busy,
-    error,
+    notification,
+    dismissNotification: () => setNotification(null),
     restore: () =>
       run(async () => {
         const session = await request<{
@@ -106,7 +112,7 @@ export function createAuth() {
           mode === "register" ? "users" : "session",
           { user: { email } },
         );
-        setError(result.message);
+        setNotification({ kind: "success", message: result.message });
       }),
     confirm: (linkToken: string) =>
       run(async () => {
