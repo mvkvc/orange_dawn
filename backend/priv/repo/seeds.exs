@@ -2,6 +2,10 @@
 # Development accounts use the normal email-link login flow.
 alias OrangeDawn.Accounts
 
-if Mix.env() == :dev && is_nil(Accounts.get_user_by_email("test@test.com")) do
-  {:ok, _user} = Accounts.register_user(%{email: "test@test.com"})
+case Accounts.get_user_by_email("test@test.com") do
+  nil ->
+    {:ok, _user} = Accounts.register_user(%{email: "test@test.com"})
+
+  _user ->
+    :ok
 end
