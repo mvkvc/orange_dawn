@@ -9,6 +9,8 @@ afterEach(() => {
   document.body.replaceChildren();
   vi.unstubAllGlobals();
   sessionStorage.clear();
+  localStorage.clear();
+  document.documentElement.removeAttribute("data-theme");
 });
 
 it("navigates between real pages without replacing the shared navbar", async () => {
@@ -23,6 +25,10 @@ it("navigates between real pages without replacing the shared navbar", async () 
   });
   const navbar = root.querySelector("nav");
   expect(root.querySelector("form")).toBeNull();
+  const authLinks = Array.from(root.querySelectorAll("nav a")).map((link) =>
+    link.textContent?.trim(),
+  );
+  expect(authLinks).toEqual(["Orange Dawn", "Create account", "Log in"]);
   root.querySelector<HTMLAnchorElement>('[href="/users/log-in"]')?.click();
   await vi.waitFor(() => {
     expect(root.querySelector("h1")?.textContent).toBe("Log in");
@@ -48,4 +54,67 @@ it("renders a not-found page for an unknown direct URL", async () => {
   await vi.waitFor(() => {
     expect(root.textContent).toContain("Page not found");
   });
+});
+
+it("offers light, dark and system appearance and remembers the selection", async () => {
+  history.replaceState(null, "", "/");
+  localStorage.setItem("orange-dawn-appearance", "dark");
+  const root = document.createElement("div");
+  document.body.append(root);
+  dispose = mountApp(root);
+  flush();
+  await vi.waitFor(() => {
+    expect(document.documentElement.dataset.theme).toBe("business");
+  });
+  expect(root.textContent).not.toContain("Autumn");
+  expect(root.textContent).not.toContain("Business");
+  expect(root.querySelector('button[aria-label="Light"]')).not.toBeNull();
+  root.querySelector("details")?.setAttribute("open", "");
+  root.querySelector<HTMLButtonElement>('button[aria-label="Light"]')?.click();
+  await vi.waitFor(() => {
+    expect(document.documentElement.dataset.theme).toBe("autumn");
+  });
+  expect(localStorage.getItem("orange-dawn-appearance")).toBe("light");
+  root.querySelector<HTMLButtonElement>('button[aria-label="System"]')?.click();
+  await vi.waitFor(() => {
+    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
+  });
+  expect(localStorage.getItem("orange-dawn-appearance")).toBe("system");
+});
+
+it("exchanges an emailed token and shows the signed-in home", async () => {
+  history.replaceState(null, "", "/users/log-in#login=emailed-token");
+  vi.stubGlobal("scrollTo", vi.fn());
+  const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        user: { id: 1, email: "player@example.com" },
+        token: "session-token",
+      }),
+    ),
+  );
+  vi.stubGlobal("fetch", fetch);
+  const root = document.createElement("div");
+  document.body.append(root);
+  dispose = mountApp(root);
+  flush();
+  await vi.waitFor(() => {
+    expect(fetch).toHaveBeenCalled();
+  });
+  expect(fetch.mock.calls[0]?.[1]?.body).toBe(
+    JSON.stringify({ user: { token: "emailed-token" } }),
+  );
+  await vi.waitFor(() => {
+    expect(location.pathname).toBe("/");
+  });
+  expect(root.querySelector<HTMLElement>("#account")?.hidden).toBe(false);
+  expect(root.querySelector<HTMLElement>("#nav-login")?.hidden).toBe(true);
+  expect(root.querySelector<HTMLElement>("#nav-register")?.hidden).toBe(true);
+  expect(sessionStorage.getItem("orange-dawn-token")).toBe("session-token");
+  fetch.mockResolvedValueOnce(new Response(null, { status: 204 }));
+  root.querySelector<HTMLButtonElement>("#logout")?.click();
+  await vi.waitFor(() => {
+    expect(root.querySelector<HTMLElement>("#account")?.hidden).toBe(true);
+  });
+  expect(root.querySelector<HTMLElement>("#nav-register")?.hidden).toBe(false);
 });

@@ -7,6 +7,7 @@ import {
   useLocation,
   type RouteSectionProps,
 } from "@solidjs/router";
+import { ThemePicker } from "./theme-picker.dom";
 import { createAuth } from "./auth";
 
 const AuthContext = createContext<ReturnType<typeof createAuth>>();
@@ -28,6 +29,14 @@ function Layout(props: RouteSectionProps) {
             Orange Dawn
           </a>
           <a
+            id="nav-register"
+            hidden={!!auth.user()}
+            href="/users/register"
+            class="btn btn-ghost btn-sm"
+          >
+            Create account
+          </a>
+          <a
             id="nav-login"
             hidden={!!auth.user()}
             href="/users/log-in"
@@ -35,57 +44,7 @@ function Layout(props: RouteSectionProps) {
           >
             Log in
           </a>
-          <details class="dropdown dropdown-end">
-            <summary class="btn btn-ghost btn-sm">
-              Theme <span aria-hidden="true">⌄</span>
-            </summary>
-            <ul
-              class="dropdown-content menu z-10 mt-2 w-52 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg"
-              aria-label="Choose theme"
-            >
-              <li>
-                <label class="flex gap-3">
-                  <input
-                    type="radio"
-                    name="theme"
-                    value="autumn"
-                    class="radio radio-sm theme-controller"
-                    checked
-                  />
-                  <span class="flex-1">Autumn</span>
-                  <span
-                    data-theme="autumn"
-                    class="flex gap-1 rounded bg-base-100 p-1"
-                    aria-hidden="true"
-                  >
-                    <span class="h-3 w-3 rounded bg-primary"></span>
-                    <span class="h-3 w-3 rounded bg-secondary"></span>
-                    <span class="h-3 w-3 rounded bg-accent"></span>
-                  </span>
-                </label>
-              </li>
-              <li>
-                <label class="flex gap-3">
-                  <input
-                    type="radio"
-                    name="theme"
-                    value="business"
-                    class="radio radio-sm theme-controller"
-                  />
-                  <span class="flex-1">Business</span>
-                  <span
-                    data-theme="business"
-                    class="flex gap-1 rounded bg-base-100 p-1"
-                    aria-hidden="true"
-                  >
-                    <span class="h-3 w-3 rounded bg-primary"></span>
-                    <span class="h-3 w-3 rounded bg-secondary"></span>
-                    <span class="h-3 w-3 rounded bg-accent"></span>
-                  </span>
-                </label>
-              </li>
-            </ul>
-          </details>
+          <ThemePicker />
           <div
             id="account"
             class="flex items-center gap-3"
@@ -97,7 +56,11 @@ function Layout(props: RouteSectionProps) {
             <button
               id="logout"
               disabled={auth.busy()}
-              onClick={() => void auth.logout()}
+              ref={(button) => {
+                button.addEventListener("click", () => {
+                  void auth.logout();
+                });
+              }}
               type="button"
               class="btn btn-ghost btn-sm"
             >
@@ -122,18 +85,25 @@ function AuthPage(props: { register?: boolean }) {
   onSettled(() => {
     const token = new URLSearchParams(location.hash.slice(1)).get("login");
     if (token) {
-      navigate(location.pathname, { replace: true });
-      void auth.confirm(token);
+      const path = location.pathname;
+      queueMicrotask(() => {
+        navigate(path, { replace: true });
+        void auth.confirm(token);
+      });
     }
   });
   createEffect(
     () => auth.user(),
     (user) => {
-      if (user) navigate("/", { replace: true });
+      if (user)
+        queueMicrotask(() => {
+          navigate("/", { replace: true });
+        });
     },
   );
-  function submit(event: SubmitEvent & { currentTarget: HTMLFormElement }) {
+  function submit(event: Event) {
     event.preventDefault();
+    if (!(event.currentTarget instanceof HTMLFormElement)) return;
     const email = new FormData(event.currentTarget).get("email");
     if (typeof email === "string")
       void auth.submit(props.register ? "register" : "login", email);
@@ -150,7 +120,13 @@ function AuthPage(props: { register?: boolean }) {
         <p class="mt-3 text-base-content/70">
           We'll email you a link to sign in.
         </p>
-        <form onSubmit={submit} id="auth-form" class="mt-8 space-y-4">
+        <form
+          ref={(form) => {
+            form.addEventListener("submit", submit);
+          }}
+          id="auth-form"
+          class="mt-8 space-y-4"
+        >
           <label for="email" class="label">
             Email
           </label>
