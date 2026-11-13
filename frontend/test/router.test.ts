@@ -1,8 +1,20 @@
 // @vitest-environment jsdom
-import { afterEach, expect, it, vi } from "vitest";
+import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import { flush } from "solid-js";
 import { mountApp } from "../src/app.dom";
 
+beforeEach(() => {
+  vi.stubGlobal(
+    "fetch",
+    vi
+      .fn<typeof fetch>()
+      .mockImplementation(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({ user: null, csrf_token: "csrf" })),
+        ),
+      ),
+  );
+});
 let dispose: (() => void) | undefined;
 afterEach(() => {
   dispose?.();
@@ -89,9 +101,12 @@ it("exchanges an emailed token and shows the signed-in home", async () => {
     new Response(
       JSON.stringify({
         user: { id: 1, email: "player@example.com" },
-        token: "session-token",
+        csrf_token: "new-csrf",
       }),
     ),
+  );
+  fetch.mockResolvedValueOnce(
+    new Response(JSON.stringify({ user: null, csrf_token: "csrf" })),
   );
   vi.stubGlobal("fetch", fetch);
   const root = document.createElement("div");
@@ -101,7 +116,7 @@ it("exchanges an emailed token and shows the signed-in home", async () => {
   await vi.waitFor(() => {
     expect(fetch).toHaveBeenCalled();
   });
-  expect(fetch.mock.calls[0]?.[1]?.body).toBe(
+  expect(fetch.mock.calls[1]?.[1]?.body).toBe(
     JSON.stringify({ user: { token: "emailed-token" } }),
   );
   await vi.waitFor(() => {
@@ -110,7 +125,7 @@ it("exchanges an emailed token and shows the signed-in home", async () => {
   expect(root.querySelector<HTMLElement>("#account")?.hidden).toBe(false);
   expect(root.querySelector<HTMLElement>("#nav-login")?.hidden).toBe(true);
   expect(root.querySelector<HTMLElement>("#nav-register")?.hidden).toBe(true);
-  expect(sessionStorage.getItem("orange-dawn-token")).toBe("session-token");
+  expect(sessionStorage.getItem("orange-dawn-token")).toBeNull();
   fetch.mockResolvedValueOnce(new Response(null, { status: 204 }));
   root.querySelector<HTMLButtonElement>("#logout")?.click();
   await vi.waitFor(() => {

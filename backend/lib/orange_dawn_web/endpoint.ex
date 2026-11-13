@@ -8,7 +8,9 @@ defmodule OrangeDawnWeb.Endpoint do
     store: :cookie,
     key: "_orange_dawn_key",
     signing_salt: "AhpcLQRY",
-    same_site: "Lax"
+    same_site: "Lax",
+    http_only: true,
+    secure: Application.compile_env(:orange_dawn, :secure_cookies, false)
   ]
 
   # socket "/live", Phoenix.LiveView.Socket,
@@ -16,7 +18,7 @@ defmodule OrangeDawnWeb.Endpoint do
   #   longpoll: [connect_info: [session: @session_options]]
 
   socket "/socket", OrangeDawnWeb.UserSocket,
-    websocket: true,
+    websocket: [connect_info: [session: @session_options]],
     longpoll: false
 
   # Serve at "/" the static files from "priv/static" directory.

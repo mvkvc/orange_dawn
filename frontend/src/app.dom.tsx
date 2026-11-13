@@ -12,7 +12,7 @@ import { createAuth } from "./auth";
 
 const AuthContext = createContext<ReturnType<typeof createAuth>>();
 function Layout(props: RouteSectionProps) {
-  const auth = createAuth(sessionStorage);
+  const auth = createAuth();
   onSettled(() => {
     if (!new URLSearchParams(window.location.hash.slice(1)).has("login"))
       void auth.restore();

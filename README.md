@@ -67,13 +67,17 @@ Register with `POST /api/v1/users` or request a sign-in link with
 `POST /api/v1/session`, using `{"user":{"email":"player@example.com"}}`.
 Open development emails at `http://localhost:4000/dev/mailbox`.
 Links expire after 15 minutes. The client exchanges the email token via
-`POST /api/v1/session` with `{"user":{"token":"..."}}` for `{user, token}`.
+`POST /api/v1/session` with `{"user":{"token":"..."}}` for `{user, csrf_token}`.
 The first login confirms the email and clears earlier tokens; links are single-use.
 
-API bearer tokens expire after seven days and are stored hashed in the database.
-The client retains its token in sessionStorage. `GET /api/v1/session` restores
-its user; `DELETE /api/v1/session` revokes it and disconnects the user's sockets.
-Socket connections require a `token` parameter. Public user data is `id` and `email`.
+Browser authentication follows Phoenix's session pattern: an HttpOnly signed
+session cookie and a persistent, signed remember-me cookie lasting 14 days.
+Active sessions are reissued after seven days. Production cookies are Secure
+and SameSite=Lax. No authentication token is returned to JavaScript or stored in
+sessionStorage/localStorage. `GET /api/v1/session` returns the current user (or
+null) and a CSRF token; state-changing requests send it as `x-csrf-token`.
+Logout revokes the database session and clears both cookies. Socket connections
+use Phoenix session connect-info and require the `_csrf_token` connection parameter.
 
 Development uses Swoosh's local mailbox; tests use its test adapter. Production
 requires `FRONTEND_URL` (the public HTTPS client origin), `MAIL_FROM`, `SMTP_HOST`,

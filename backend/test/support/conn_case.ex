@@ -40,13 +40,13 @@ defmodule OrangeDawnWeb.ConnCase do
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
-  @doc "Registers an account and authenticates API requests with a bearer token."
+  @doc "Registers an account and authenticates API requests with a Phoenix session."
   def register_and_log_in_user(%{conn: conn}) do
     user = AccountsFixtures.user_fixture()
-    token = Accounts.create_user_api_token(user)
+    token = Accounts.generate_user_session_token(user)
 
     %{
-      conn: Plug.Conn.put_req_header(conn, "authorization", "Bearer #{token}"),
+      conn: Phoenix.ConnTest.init_test_session(conn, %{user_token: token}),
       user: user,
       scope: Scope.for_user(user)
     }

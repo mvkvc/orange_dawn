@@ -40,11 +40,15 @@ defmodule OrangeDawnWeb.UserSessionController do
   end
 
   def show(conn, _params) do
-    json(conn, %{user: public_user(conn.assigns.current_scope.user)})
+    user = if conn.assigns.current_scope, do: public_user(conn.assigns.current_scope.user)
+
+    conn
+    |> put_resp_header("cache-control", "no-store")
+    |> json(%{user: user, csrf_token: get_csrf_token()})
   end
 
   def delete(conn, _params) do
-    Accounts.delete_user_api_token(conn.assigns.api_token)
+    Accounts.delete_user_session_token(get_session(conn, :user_token))
 
     OrangeDawnWeb.Endpoint.broadcast(
       "users_socket:#{conn.assigns.current_scope.user.id}",
@@ -52,13 +56,14 @@ defmodule OrangeDawnWeb.UserSessionController do
       %{}
     )
 
-    send_resp(conn, :no_content, "")
+    conn |> OrangeDawnWeb.UserAuth.log_out_user() |> send_resp(:no_content, "")
   end
 
   def render_session(conn, user) do
     conn
     |> put_resp_header("cache-control", "no-store")
-    |> json(%{user: public_user(user), token: Accounts.create_user_api_token(user)})
+    |> OrangeDawnWeb.UserAuth.log_in_user(user)
+    |> json(%{user: public_user(user), csrf_token: get_csrf_token()})
   end
 
   defp public_user(user), do: %{id: user.id, email: user.email}

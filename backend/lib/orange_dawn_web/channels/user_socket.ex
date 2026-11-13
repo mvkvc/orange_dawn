@@ -6,10 +6,10 @@ defmodule OrangeDawnWeb.UserSocket do
   channel "lobby:*", OrangeDawnWeb.LobbyChannel
 
   @impl true
-  def connect(%{"token" => token}, socket, _connect_info) do
-    case Accounts.fetch_user_by_api_token(token) do
-      {:ok, user} -> {:ok, assign(socket, :current_scope, Scope.for_user(user))}
-      :error -> :error
+  def connect(_params, socket, %{session: %{"user_token" => token}}) do
+    case Accounts.get_user_by_session_token(token) do
+      {user, _inserted_at} -> {:ok, assign(socket, :current_scope, Scope.for_user(user))}
+      _ -> :error
     end
   end
 

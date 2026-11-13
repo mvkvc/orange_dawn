@@ -7,6 +7,7 @@ defmodule OrangeDawn.Accounts.UserToken do
   @rand_size 32
 
   @api_token_validity_in_days 7
+  @session_validity_in_days 14
   @magic_link_validity_in_minutes 15
 
   schema "users_tokens" do
@@ -78,5 +79,29 @@ defmodule OrangeDawn.Accounts.UserToken do
 
   defp by_token_and_context_query(token, context) do
     from UserToken, where: [token: ^token, context: ^context]
+  end
+
+  def build_session_token(user) do
+    token = :crypto.strong_rand_bytes(@rand_size)
+    dt = user.authenticated_at || DateTime.utc_now(:second)
+    {token, %UserToken{token: token, context: "session", user_id: user.id, authenticated_at: dt}}
+  end
+
+  @doc """
+  Checks if the token is valid and returns its underlying lookup query.
+
+  The query returns the user found by the token, if any, along with the token's creation time.
+
+  The token is valid if it matches the value in the database and it has
+  not expired (after @session_validity_in_days).
+  """
+  def verify_session_token_query(token) do
+    query =
+      from token in by_token_and_context_query(token, "session"),
+        join: user in assoc(token, :user),
+        where: token.inserted_at > ago(@session_validity_in_days, "day"),
+        select: {%{user | authenticated_at: token.authenticated_at}, token.inserted_at}
+
+    {:ok, query}
   end
 end

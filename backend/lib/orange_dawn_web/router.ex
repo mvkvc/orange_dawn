@@ -9,21 +9,24 @@ defmodule OrangeDawnWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_session
+    plug :protect_from_forgery
+    plug :fetch_current_scope_for_user
   end
 
   pipeline :authenticated_api do
-    plug :fetch_current_scope_for_api_user
+    plug :require_authenticated_user
   end
 
   scope "/api/v1", OrangeDawnWeb do
     pipe_through :api
+    get "/session", UserSessionController, :show
     post "/users", UserRegistrationController, :create
     post "/session", UserSessionController, :create
   end
 
   scope "/api/v1", OrangeDawnWeb do
     pipe_through [:api, :authenticated_api]
-    get "/session", UserSessionController, :show
     delete "/session", UserSessionController, :delete
   end
 

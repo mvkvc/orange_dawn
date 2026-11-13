@@ -7,7 +7,7 @@ export interface User {
 
 interface Session {
   user: User;
-  token: string;
+  csrf_token: string;
 }
 
 export class AuthError extends Error {
@@ -19,14 +19,11 @@ export class AuthError extends Error {
   }
 }
 
-// A tab-scoped token survives reloads without persisting across browser sessions.
-export function createAuth(
-  storage: Pick<Storage, "getItem" | "setItem" | "removeItem">,
-) {
+export function createAuth() {
   const [user, setUser] = createSignal<User | null>(null);
   const [busy, setBusy] = createSignal(false);
   const [error, setError] = createSignal("");
-  let token = storage.getItem("orange-dawn-token");
+  let csrfToken: string | undefined;
   let pending = false;
 
   async function request<T>(
@@ -34,11 +31,16 @@ export function createAuth(
     path: string,
     body?: unknown,
   ): Promise<T> {
+    if (method !== "GET" && !csrfToken) {
+      const bootstrap = await request<{ csrf_token: string }>("GET", "session");
+      csrfToken = bootstrap.csrf_token;
+    }
     const response = await fetch(`/api/v1/${path}`, {
       method,
+      credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(csrfToken ? { "x-csrf-token": csrfToken } : {}),
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
@@ -60,8 +62,7 @@ export function createAuth(
   }
 
   function clear() {
-    token = null;
-    storage.removeItem("orange-dawn-token");
+    csrfToken = undefined;
     setUser(null);
   }
 
@@ -91,8 +92,11 @@ export function createAuth(
     error,
     restore: () =>
       run(async () => {
-        if (!token) return;
-        const session = await request<{ user: User }>("GET", "session");
+        const session = await request<{
+          user: User | null;
+          csrf_token: string;
+        }>("GET", "session");
+        csrfToken = session.csrf_token;
         setUser(session.user);
       }),
     submit: (mode: "login" | "register", email: string) =>
@@ -109,8 +113,7 @@ export function createAuth(
         const session = await request<Session>("POST", "session", {
           user: { token: linkToken },
         });
-        token = session.token;
-        storage.setItem("orange-dawn-token", token);
+        csrfToken = session.csrf_token;
         setUser(session.user);
       }),
     logout: () =>
