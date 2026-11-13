@@ -14,6 +14,9 @@
         <a href="/" class="flex-1 text-xl font-bold tracking-tight"
           >Orange Dawn</a
         >
+        <a id="nav-login" href="/users/log-in" class="btn btn-ghost btn-sm"
+          >Log in</a
+        >
         <details class="dropdown dropdown-end">
           <summary class="btn btn-ghost btn-sm">
             Theme <span aria-hidden="true">⌄</span>
@@ -73,6 +76,7 @@
     </header>
     <main
       id="auth-panel"
+      hidden
       class="mx-auto flex min-h-[calc(100dvh-4rem)] max-w-6xl items-center justify-center px-6 py-12"
     >
       <section class="w-full max-w-sm" aria-labelledby="auth-heading">
@@ -106,9 +110,6 @@
         </button>
       </section>
     </main>
-    <section id="game" hidden>
-      <canvas id="root" class="block h-full w-full"></canvas>
-    </section>
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>

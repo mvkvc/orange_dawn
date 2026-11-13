@@ -11,7 +11,7 @@ defmodule OrangeDawnWeb.UserSessionControllerTest do
 
     assert %{"message" => _} = json_response(response, 201)
     assert_receive {:email, email}
-    [_, link] = String.split(email.text_body, "/#login=")
+    [_, link] = String.split(email.text_body, "/users/log-in#login=")
     token = link |> String.split() |> hd()
     response = post(conn, ~p"/api/v1/session", user: %{token: token})
     assert %{"token" => token, "user" => user} = json_response(response, 200)

@@ -36,7 +36,7 @@ defmodule OrangeDawnWeb.UserSessionController do
   end
 
   def login_url(token) do
-    Application.fetch_env!(:orange_dawn, :frontend_url) <> "/#login=" <> token
+    Application.fetch_env!(:orange_dawn, :frontend_url) <> "/users/log-in#login=" <> token
   end
 
   def show(conn, _params) do

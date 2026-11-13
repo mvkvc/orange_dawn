@@ -56,7 +56,9 @@ not create or deploy a production release. GitHub Actions runs the same checks o
 
 Authentication uses Phoenix 1.8's generated email-link flow, adapted to JSON
 following [Phoenix's API guide](https://phoenix.hexdocs.pm/api_authentication.html).
-The DaisyUI site shell has a navbar, light/dark themes, and login and registration views.
+The DaisyUI site shell has a navbar and theme picker. The home page is empty.
+Login is at `/users/log-in`, registration is at `/users/register`, and authenticated
+users see a Log out button in the navbar.
 
 Register with `POST /api/v1/users` or request a sign-in link with
 `POST /api/v1/session`, using `{"user":{"email":"player@example.com"}}`.

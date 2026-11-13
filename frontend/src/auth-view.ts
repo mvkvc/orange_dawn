@@ -21,23 +21,23 @@ export function mountAuth() {
     const status = element("auth-status", HTMLElement);
     const account = element("account", HTMLElement);
     const heading = element("auth-heading", HTMLElement);
-    let mode: "login" | "register" = "login";
+    const mode = location.pathname === "/users/register" ? "register" : "login";
+    const authPage = ["/users/log-in", "/users/register"].includes(
+      location.pathname,
+    );
+    const registering = mode === "register";
+    heading.textContent = registering ? "Create your account" : "Log in";
+    submit.textContent = registering ? "Create account" : "Email sign-in link";
+    toggle.textContent = registering
+      ? "Already have an account? Log in"
+      : "New here? Create an account";
 
     form.onsubmit = (event) => {
       event.preventDefault();
       void auth.submit(mode, email.value);
     };
     toggle.onclick = () => {
-      mode = mode === "login" ? "register" : "login";
-      const registering = mode === "register";
-      heading.textContent = registering ? "Create your account" : "Log in";
-      submit.textContent = registering
-        ? "Create account"
-        : "Email sign-in link";
-      toggle.textContent = registering
-        ? "Already have an account? Log in"
-        : "New here? Create an account";
-      status.textContent = "";
+      location.assign(registering ? "/users/log-in" : "/users/register");
     };
     logout.onclick = () => {
       void auth.logout();
@@ -46,8 +46,9 @@ export function mountAuth() {
     createEffect(
       () => ({ user: auth.user(), busy: auth.busy(), error: auth.error() }),
       ({ user, busy, error }) => {
-        panel.hidden = !!user;
-        element("game", HTMLElement).hidden = !user;
+        panel.hidden = !authPage || !!user;
+        element("nav-login", HTMLElement).hidden = !!user;
+        if (user && authPage) location.replace("/");
         account.hidden = !user;
         element("account-email", HTMLElement).textContent = user?.email ?? "";
         for (const input of [email, submit, toggle, logout])
