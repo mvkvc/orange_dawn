@@ -40,7 +40,12 @@ it("navigates between real pages without replacing the shared navbar", async () 
   const authLinks = Array.from(root.querySelectorAll("nav a")).map((link) =>
     link.textContent?.trim(),
   );
-  expect(authLinks).toEqual(["Orange Dawn", "Create account", "Log in"]);
+  expect(authLinks).toEqual([
+    "Orange Dawn",
+    "Home",
+    "Create account",
+    "Log in",
+  ]);
   root.querySelector<HTMLAnchorElement>('[href="/users/log-in"]')?.click();
   await vi.waitFor(() => {
     expect(root.querySelector("h1")?.textContent).toBe("Log in");
@@ -123,6 +128,8 @@ it("exchanges an emailed token and shows the signed-in home", async () => {
     expect(location.pathname).toBe("/");
   });
   expect(root.querySelector<HTMLElement>("#account")?.hidden).toBe(false);
+  expect(root.querySelector<HTMLElement>("#nav-home")?.hidden).toBe(false);
+  expect(root.querySelector<HTMLElement>("#logout")?.hidden).toBe(false);
   expect(root.querySelector<HTMLElement>("#nav-login")?.hidden).toBe(true);
   expect(root.querySelector<HTMLElement>("#nav-register")?.hidden).toBe(true);
   expect(sessionStorage.getItem("orange-dawn-token")).toBeNull();
@@ -132,6 +139,8 @@ it("exchanges an emailed token and shows the signed-in home", async () => {
     expect(root.querySelector<HTMLElement>("#account")?.hidden).toBe(true);
   });
   expect(root.querySelector<HTMLElement>("#nav-register")?.hidden).toBe(false);
+  expect(root.querySelector<HTMLElement>("#nav-home")?.hidden).toBe(false);
+  expect(root.querySelector<HTMLElement>("#logout")?.hidden).toBe(true);
 });
 
 it("shows dismissible auth notifications outside the form", async () => {

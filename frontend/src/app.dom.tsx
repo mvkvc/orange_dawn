@@ -28,39 +28,44 @@ function Layout(props: RouteSectionProps) {
       {" "}
       <header class="border-b border-base-300">
         <nav
-          class="navbar mx-auto max-w-6xl gap-4 px-6"
+          class="navbar mx-auto max-w-6xl flex-wrap gap-4 px-6"
           aria-label="Main navigation"
         >
           <a href="/" class="flex-1 text-xl font-bold tracking-tight">
             Orange Dawn
           </a>
-          <a
-            id="nav-register"
-            hidden={!!auth.user()}
-            href="/users/register"
-            class="btn btn-ghost btn-sm"
-          >
-            Create account
-          </a>
-          <a
-            id="nav-login"
-            hidden={!!auth.user()}
-            href="/users/log-in"
-            class="btn btn-ghost btn-sm"
-          >
-            Log in
-          </a>
-          <ThemePicker />
-          <div
-            id="account"
-            class="flex items-center gap-3"
-            hidden={!auth.user()}
-          >
-            <span id="account-email" class="hidden text-sm sm:inline">
+          <div class="flex flex-wrap items-center justify-end gap-1 sm:gap-3">
+            <ThemePicker />
+            <span
+              id="account"
+              hidden={!auth.user()}
+              class="max-w-48 truncate text-sm"
+              title={auth.user()?.email}
+            >
               {auth.user()?.email}
             </span>
+            <a id="nav-home" href="/" class="btn btn-ghost btn-sm">
+              Home
+            </a>
+            <a
+              id="nav-register"
+              hidden={!!auth.user()}
+              href="/users/register"
+              class="btn btn-ghost btn-sm"
+            >
+              Create account
+            </a>
+            <a
+              id="nav-login"
+              hidden={!!auth.user()}
+              href="/users/log-in"
+              class="btn btn-ghost btn-sm"
+            >
+              Log in
+            </a>
             <button
               id="logout"
+              hidden={!auth.user()}
               disabled={auth.busy()}
               ref={(button) => {
                 button.addEventListener("click", () => {
