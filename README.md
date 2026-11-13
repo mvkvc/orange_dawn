@@ -58,7 +58,10 @@ Authentication uses Phoenix 1.8's generated email-link flow, adapted to JSON
 following [Phoenix's API guide](https://phoenix.hexdocs.pm/api_authentication.html).
 The DaisyUI site shell has a navbar and theme picker. The home page is empty.
 Login is at `/users/log-in`, registration is at `/users/register`, and authenticated
-users see a Log out button in the navbar.
+users see a Log out button in the navbar. Solid Router `2.0.0-next.18` owns
+client navigation and the not-found route; it is pinned for compatibility with
+Solid `2.0.0-rc.3`. DOM pages compile with `@solidjs/web`; `*.pixi.tsx` files
+use the Pixi renderer. Router integration tests run in jsdom.
 
 Register with `POST /api/v1/users` or request a sign-in link with
 `POST /api/v1/session`, using `{"user":{"email":"player@example.com"}}`.
