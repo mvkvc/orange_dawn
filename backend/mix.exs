@@ -39,6 +39,9 @@ defmodule OrangeDawn.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:pbkdf2_elixir, "~> 2.0"},
+      {:gen_smtp, "~> 1.3"},
+      {:swoosh, "~> 1.28"},
       {:phoenix, "~> 1.8.16"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.13"},

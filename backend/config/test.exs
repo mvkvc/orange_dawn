@@ -1,4 +1,8 @@
 import Config
+config :orange_dawn, OrangeDawn.Mailer, adapter: Swoosh.Adapters.Test
+
+# Only in tests, remove the complexity from the password hashing algorithm
+config :pbkdf2_elixir, :rounds, 1
 
 # Configure your database
 #

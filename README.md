@@ -52,6 +52,41 @@ Frontend builds write to `backend/priv/static`. Production configuration enables
 Phoenix's SPA fallback. `just build` uses the current Mix environment; it does
 not create or deploy a production release. GitHub Actions runs the same checks on pull requests and pushes to `main`.
 
+## Authentication
+
+Authentication uses Phoenix 1.8's generated email-link flow, adapted to JSON
+following [Phoenix's API guide](https://phoenix.hexdocs.pm/api_authentication.html).
+The DaisyUI site shell has a navbar and theme picker. The home page is empty.
+Login is at `/users/log-in`, registration is at `/users/register`, and authenticated
+users see a Log out button in the navbar. Solid Router `2.0.0-next.18` owns
+client navigation and the not-found route; it is pinned for compatibility with
+Solid `2.0.0-rc.3`. DOM pages compile with `@solidjs/web`; `*.pixi.tsx` files
+use the Pixi renderer. Router integration tests run in jsdom.
+
+Register with `POST /api/v1/users` or request a sign-in link with
+`POST /api/v1/session`, using `{"user":{"email":"player@example.com"}}`.
+Development setup seeds `test@test.com` so you can use Log in directly.
+To seed an existing database, run `mix run priv/repo/seeds.exs` from `backend/`.
+Open development emails at `http://localhost:4000/dev/mailbox`.
+Links expire after 15 minutes. The client exchanges the email token via
+`POST /api/v1/session` with `{"user":{"token":"..."}}` for `{user, csrf_token}`.
+The first login confirms the email and clears earlier tokens; links are single-use.
+
+Browser authentication follows Phoenix's session pattern: an HttpOnly signed
+session cookie and a persistent, signed remember-me cookie lasting 14 days.
+Active sessions are reissued after seven days. Production cookies are Secure
+and SameSite=Lax. No authentication token is returned to JavaScript or stored in
+sessionStorage/localStorage. `GET /api/v1/session` returns the current user (or
+null) and a CSRF token; state-changing requests send it as `x-csrf-token`.
+Logout revokes the database session and clears both cookies. Socket connections
+use Phoenix session connect-info and require the `_csrf_token` connection parameter.
+
+Development uses Swoosh's local mailbox; tests use its test adapter. Production
+requires `BACKEND_FRONTEND_URL` (the public HTTPS client origin), `BACKEND_MAIL_FROM`, `BACKEND_SMTP_HOST`,
+`BACKEND_SMTP_USERNAME`, and `BACKEND_SMTP_PASSWORD`; `BACKEND_SMTP_PORT` defaults to 587. SMTP uses
+STARTTLS with certificate verification. Real SMTP delivery requires deployment
+credentials and has not been exercised locally.
+
 ## Repository and agent workflow
 
 - `frontend/`: client code and renderer configuration.

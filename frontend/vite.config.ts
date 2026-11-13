@@ -9,6 +9,11 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     solid({
+      exclude: /\.pixi\.tsx$/,
+      solid: { moduleName: "@solidjs/web", generate: "dom" },
+    }),
+    solid({
+      include: /\.pixi\.tsx$/,
       diagnostics: true,
       solid: {
         moduleName: "solid-pixi",

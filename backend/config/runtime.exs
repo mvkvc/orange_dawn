@@ -26,6 +26,25 @@ if config_env() != :test do
 end
 
 if config_env() == :prod do
+  relay = System.fetch_env!("BACKEND_SMTP_HOST")
+  config :orange_dawn, :frontend_url, System.fetch_env!("BACKEND_FRONTEND_URL")
+  config :orange_dawn, :mail_from, System.fetch_env!("BACKEND_MAIL_FROM")
+
+  config :orange_dawn, OrangeDawn.Mailer,
+    adapter: Swoosh.Adapters.SMTP,
+    relay: relay,
+    port: String.to_integer(System.get_env("BACKEND_SMTP_PORT", "587")),
+    username: System.fetch_env!("BACKEND_SMTP_USERNAME"),
+    password: System.fetch_env!("BACKEND_SMTP_PASSWORD"),
+    auth: :always,
+    tls: :always,
+    tls_options: [
+      verify: :verify_peer,
+      cacerts: :public_key.cacerts_get(),
+      server_name_indication: String.to_charlist(relay),
+      customize_hostname_check: [match_fun: :public_key.pkix_verify_hostname_match_fun(:https)]
+    ]
+
   database_url =
     System.get_env("BACKEND_DATABASE_URL") ||
       raise """
@@ -33,12 +52,12 @@ if config_env() == :prod do
       For example: ecto://USER:PASS@HOST/DATABASE
       """
 
-  maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+  maybe_ipv6 = if System.get_env("BACKEND_ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
 
   config :orange_dawn, OrangeDawn.Repo,
     # ssl: true,
     url: database_url,
-    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+    pool_size: String.to_integer(System.get_env("BACKEND_POOL_SIZE") || "10"),
     # For machines with several cores, consider starting multiple pools of `pool_size`
     # pool_count: 4,
     socket_options: maybe_ipv6
@@ -61,7 +80,7 @@ if config_env() == :prod do
       environment variable BACKEND_HOST is missing.
       """
 
-  config :orange_dawn, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
+  config :orange_dawn, :dns_cluster_query, System.get_env("BACKEND_DNS_CLUSTER_QUERY")
 
   config :orange_dawn, OrangeDawnWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
